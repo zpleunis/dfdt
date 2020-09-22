@@ -42,4 +42,6 @@ constrained, dfdt_data, dfdt_mc, dfdt_mc_low, dfdt_mc_hihg = ac_mc_drift(
     dm_trials=100, mc_trials=100
 )
 ```
-The output of a run with 100x100=10,000 Monte Carlo trials is saved into the `results` directory. 
+The output of a run, two diagnostic figures and a `.npz` file with the results, with 100x100=10,000 Monte Carlo trials is saved into the `results` directory.
+
+The `dm_uncertainty` is the standard deviation of the normal distribution where dispersion measure resamples are drawn from. The number of dispersion measure resamples are set by `dm_trials` and the number of noise resamples are set by `mc_trials`. You can also set the downsampling factor in frequency with `sub_factor` (64 by default), the required `detection_confidence` (99.73 by default) for a measurement, the confidence interval for the uncertainty region `uncertainty_confidence` (68.0 by default). 
