@@ -3,7 +3,7 @@ Measure a linear drift rate for a fast radio burst using a 2D auto-correlation a
 
 Created by Ziggy Pleunis, with contributions from Alex Josephy and Deborah Good.
 
-Feel free to email ziggy.pleunis@physics.mcgill.ca with questions or comments.
+Feel free to open an issue on GitHub or email ziggy.pleunis@physics.mcgill.ca with questions or comments.
 
 This method has been developed to analyze CHIME/FRB bursts, and it has been used in, e.g.:
 
