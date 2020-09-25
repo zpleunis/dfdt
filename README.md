@@ -8,7 +8,7 @@ Feel free to open an issue on GitHub or email ziggy.pleunis@physics.mcgill.ca wi
 ## Method
 
 A 2D auto-correlation analysis for measuring linear drift rates was first used by [Hessels et al. 2019](https://ui.adsabs.harvard.edu/abs/2019ApJ...876L..23H/abstract).
-The addition of Monte Carlo resampling has been developed to analyze CHIME/FRB bursts, and it has so far been used in [CHIME/FRB Collaboration et al. 2019](https://ui.adsabs.harvard.edu/abs/2019ApJ...885L..24C/abstract) and [Fonseca et al. 2020](https://ui.adsabs.harvard.edu/abs/2020ApJ...891L...6F/abstract). More details are provided in my PhD thesis, the relevant sections of which are extracted and put into the `docs` directory here.
+The addition of Monte Carlo resampling has been developed to analyze CHIME/FRB bursts, and it has so far been used in [CHIME/FRB Collaboration et al. 2019](https://ui.adsabs.harvard.edu/abs/2019ApJ...885L..24C/abstract) and [Fonseca et al. 2020](https://ui.adsabs.harvard.edu/abs/2020ApJ...891L...6F/abstract). More details are provided in my PhD thesis, the relevant sections of which are extracted and put into the `docs` directory here. The `docs` also contain a video that illustrates the drift rate definition, as well as a Jypter notebook used to make the video.
 
 ## Installation
 
