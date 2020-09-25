@@ -1,19 +1,14 @@
 # dfdt
-Measure a linear drift rate for a fast radio burst using a 2D auto-correlation analysis and Monte Carlo resampling.
+Measure a linear drift rate for a fast radio burst, (for now) using a 2D auto-correlation analysis and Monte Carlo resampling.
 
 Created by Ziggy Pleunis, with contributions from Alex Josephy and Deborah Good.
 
 Feel free to open an issue on GitHub or email ziggy.pleunis@physics.mcgill.ca with questions or comments.
 
-This method has been developed to analyze CHIME/FRB bursts, and it has been used in, e.g.:
-
-https://ui.adsabs.harvard.edu/abs/2019ApJ...885L..24C/abstract
-
-https://ui.adsabs.harvard.edu/abs/2020ApJ...891L...6F/abstract
-
 ## Method
 
-See the `docs` directory for a brief explanation of the method.
+A 2D auto-correlation analysis for measuring linear drift rates was first used by [Hessels et al. 2019](https://ui.adsabs.harvard.edu/abs/2019ApJ...876L..23H/abstract).
+The addition of Monte Carlo resampling has been developed to analyze CHIME/FRB bursts, and it has so far been used in [CHIME/FRB Collaboration et al. 2019](https://ui.adsabs.harvard.edu/abs/2019ApJ...885L..24C/abstract) and [Fonseca et al. 2020](https://ui.adsabs.harvard.edu/abs/2020ApJ...891L...6F/abstract). More details are provided in my PhD thesis, the relevant sections of which are extracted and put into the `docs` directory here.
 
 ## Installation
 
@@ -58,4 +53,4 @@ constrained, dfdt_data, dfdt_mc, dfdt_mc_low, dfdt_mc_high = dfdt.ac_mc_drift(
     dm_trials=100, mc_trials=100
 )
 ```
-The output of a run, two diagnostic figures and a `.npz` file with all the drift rates, with 100x100=10,000 Monte Carlo trials is saved into a `results` directory. See the docstring of the `ac_mc_drift()` function for more details.
+The output of a run, two diagnostic figures and a `.npz` file with all the drift rates, with 100x100=10,000 Monte Carlo trials is saved into a `results` directory here. For explanations of the diagnostic figures see the `docs` directory. See the docstring of the `ac_mc_drift()` function for more details.
