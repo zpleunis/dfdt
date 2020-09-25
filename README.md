@@ -17,8 +17,14 @@ See the `docs` directory for a brief explanation of the method.
 
 ## Installation
 
+- Download source code:
 ```
-python setup.py install
+git clone https://github.com/zpleunis/dfdt.git
+```
+- Install in develop mode:
+```
+cd dfdt/
+python setup.py develop [--user]
 ```
 
 ## Usage
