@@ -4,7 +4,6 @@ and Monte Carlo resampling.
 """
 
 import copy
-import matplotlib
 import os
 import warnings
 
