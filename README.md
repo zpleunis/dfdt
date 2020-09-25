@@ -15,6 +15,10 @@ https://ui.adsabs.harvard.edu/abs/2020ApJ...891L...6F/abstract
 
 See the `docs` directory for a brief explanation of the method.
 
+## Installation
+
+```python setup.py install``
+
 ## Usage
 
 The `data` directory contains a dedispersed waterfall from repeating sources of FRBs 180916.J0158+65 as detected by CHIME/FRB. Running the `ac_mc_drift.py` script on the pipeline (i.e., `python ac_md_drift.py`) measures the drift rate in this burst, using these lines:
