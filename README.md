@@ -20,7 +20,11 @@ See the `docs` directory for a brief explanation of the method.
 The `data` directory contains a dedispersed waterfall from repeating sources of FRBs 180916.J0158+65 as detected by CHIME/FRB. Running the `ac_mc_drift.py` script on the pipeline (i.e., `python ac_md_drift.py`) measures the drift rate in this burst, using these lines:
 ```python
 
-fname = "./data/23891929_DM348.8_waterfall.npy"
+import numpy as np
+
+import dfdt
+
+fname = "[path to package]/dfdt/data/23891929_DM348.8_waterfall.npy"
 dedispersed_intensity = np.load(fname)
 
 # burst parameters
@@ -35,9 +39,9 @@ nchan = 16384
 freq_bottom_mhz = 400.1953125
 freq_top_mhz = 800.1953125
 
-ds = DynamicSpectrum(dt_s, df_mhz, nchan, freq_bottom_mhz, freq_top_mhz)
+ds = dfdt.DynamicSpectrum(dt_s, df_mhz, nchan, freq_bottom_mhz, freq_top_mhz)
 
-constrained, dfdt_data, dfdt_mc, dfdt_mc_low, dfdt_mc_hihg = ac_mc_drift(
+constrained, dfdt_data, dfdt_mc, dfdt_mc_low, dfdt_mc_high = dfdt.ac_mc_drift(
     dedispersed_intensity, dm_uncertainty, source, eventid, ds,
     dm_trials=100, mc_trials=100
 )
