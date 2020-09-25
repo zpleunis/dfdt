@@ -21,7 +21,7 @@ See the `docs` directory for a brief explanation of the method.
 
 ## Usage
 
-The `data` directory contains a dedispersed waterfall from repeating sources of FRBs 180916.J0158+65 as detected by CHIME/FRB. Running the `ac_mc_drift.py` script on the pipeline (i.e., `python ac_md_drift.py`) measures the drift rate in this burst, using these lines:
+The `data` directory contains a dedispersed waterfall from repeating sources of FRBs 180916.J0158+65 as detected by CHIME/FRB. After installing this module, you can measure the drift rate in this burst, using these lines:
 ```python
 
 import numpy as np
@@ -50,4 +50,4 @@ constrained, dfdt_data, dfdt_mc, dfdt_mc_low, dfdt_mc_high = dfdt.ac_mc_drift(
     dm_trials=100, mc_trials=100
 )
 ```
-The output of a run, two diagnostic figures and a `.npz` file with all the drift rates, with 100x100=10,000 Monte Carlo trials is saved into the `results` directory. See the docstring of the `ac_mc_drift()` function for more details.
+The output of a run, two diagnostic figures and a `.npz` file with all the drift rates, with 100x100=10,000 Monte Carlo trials is saved into a `results` directory. See the docstring of the `ac_mc_drift()` function for more details.
