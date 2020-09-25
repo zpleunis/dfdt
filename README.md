@@ -17,7 +17,7 @@ See the `docs` directory for a brief explanation of the method.
 
 ## Installation
 
-```python setup.py install``
+```python setup.py install```
 
 ## Usage
 
