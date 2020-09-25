@@ -1,3 +1,4 @@
 dfdt.egg-info
 *.swp
 .DS_Store
+__pycache__/
