@@ -1,5 +1,5 @@
 # dfdt
-Measure a linear drift rate for a fast radio burst, (for now) using a 2D auto-correlation analysis and Monte Carlo resampling.
+Measure a linear drift rate for a fast radio burst, (for now) using a 2D auto-correlation analysis and Monte Carlo resampling. Different methods might be added in the future.
 
 Created by Ziggy Pleunis, with contributions from Alex Josephy and Deborah Good.
 
