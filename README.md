@@ -21,7 +21,7 @@ See the `docs` directory for a brief explanation of the method.
 
 ## Usage
 
-The `data` directory contains a dedispersed waterfall from repeating sources of FRBs 180916.J0158+65 as detected by CHIME/FRB. After installing this module, you can measure the drift rate in this burst, using these lines:
+The `data` directory contains a dedispersed waterfall from repeating sources of FRBs 180916.J0158+65 as detected by CHIME/FRB. After installing `dfdt` you can measure the drift rate in this burst using:
 ```python
 
 import numpy as np
