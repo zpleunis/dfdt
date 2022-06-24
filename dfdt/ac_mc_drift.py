@@ -239,6 +239,13 @@ def ac_mc_drift(
         # let theta range from -pi to pi
         theta = p1[-2] % (2 * np.pi)
         theta_sigma = np.sqrt(np.diag(pcov))[-2]
+
+        # rotate theta for drift rate calculation by 90 deg
+        sigma_x = p0[1]
+        sigma_y = p0[2]
+        if sigma_y > sigma_x:
+            theta -= np.pi / 2.
+
         if theta > np.pi:
             theta -= 2 * np.pi
         dfdt_data = 1.0 / np.tan(-theta)
@@ -607,6 +614,11 @@ def ac_mc_drift(
                 random_theta_sigma = np.sqrt(np.diag(pcov))[-2]
                 if random_theta > np.pi:
                     random_theta -= 2 * np.pi
+                # rotate theta for drift rate calculation by 90 deg
+                random_sigma_x = p1[1]
+                random_sigma_y = p1[2]
+                if random_sigma_y > random_sigma_x:
+                    random_theta -= np.pi / 2.
                 thetas[dm_trial * mc_trials + mc_trial] = random_theta
                 theta_sigmas[dm_trial * mc_trials + mc_trial] = \
                     random_theta_sigma
