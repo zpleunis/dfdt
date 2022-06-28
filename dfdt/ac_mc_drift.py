@@ -241,8 +241,8 @@ def ac_mc_drift(
         theta_sigma = np.sqrt(np.diag(pcov))[-2]
 
         # rotate theta for drift rate calculation by 90 deg
-        sigma_x = p0[1]
-        sigma_y = p0[2]
+        sigma_x = p1[1]
+        sigma_y = p1[2]
         if sigma_y > sigma_x:
             theta -= np.pi / 2.
 
