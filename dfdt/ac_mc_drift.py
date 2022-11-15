@@ -78,9 +78,11 @@ def ac_mc_drift(
     sub_factor : int
         Factor to subband intensity data by, 64 by default.
     dm_trials : int
-        Number of DM trials, 10 by default.
+        Number of DM trials, 10 by default. If 1, do not resample the
+        DM at all.
     mc_trials : int
-        Number of Monte Carlo trials, 10 by default.
+        Number of Monte Carlo trials, 10 by default. If 1, do not
+        resample the noise at all.
     detection_confidence : float
         Confidence interval in percent to calculate for results and to
         display on plot, 99.7 (3sigma) by default.
@@ -478,7 +480,12 @@ def ac_mc_drift(
     print("{} -- {} -- Resampling data..".format(source, eventid))
     for dm_trial in range(dm_trials):
 
-        random_dm = dms[dm_trial]
+        if dm_trials == 1:
+            # do not resample at all
+            random_dm = 0
+        else:
+            # resample
+            random_dm = dms[dm_trial]
 
         intensity = copy.deepcopy(dedispersed_intensity)
 
@@ -586,19 +593,24 @@ def ac_mc_drift(
         # monte carlo resampling
         for mc_trial in range(mc_trials):
 
-            noise_model = np.random.normal(
-                loc=mus,
-                scale=sigmas,
-                size=(noise.shape[1], np.broadcast(mus, sigmas).size),
-            ).T
+            if mc_trials == 1:
+                # do not resample the noise
+                random_data = model
+            else:
+                # resample the noise
+                noise_model = np.random.normal(
+                    loc=mus,
+                    scale=sigmas,
+                    size=(noise.shape[1], np.broadcast(mus, sigmas).size),
+                ).T
 
-            try:
-                random_data = model + noise_model
-            except:
-                thetas[dm_trial * mc_trials + mc_trial] = np.nan
-                theta_sigmas[dm_trial * mc_trials + mc_trial] = np.nan
-                drift_rates[dm_trial * mc_trials + mc_trial] = np.nan
-                continue
+                try:
+                    random_data = model + noise_model
+                except:
+                    thetas[dm_trial * mc_trials + mc_trial] = np.nan
+                    theta_sigmas[dm_trial * mc_trials + mc_trial] = np.nan
+                    drift_rates[dm_trial * mc_trials + mc_trial] = np.nan
+                    continue
 
             p0 = np.nanmax(random_data), 45, 200, 0.2, np.nanmedian(noise_model)
 
