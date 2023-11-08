@@ -262,7 +262,7 @@ def ac_mc_drift(
         )
 
         # let theta range from -pi to pi
-        theta = p1[-2] % (np.pi)
+        theta = p1[-2] % (2 * np.pi)
         theta_sigma = np.sqrt(np.diag(pcov))[-2]
 
         # rotate theta for drift rate calculation by 90 deg
@@ -270,14 +270,9 @@ def ac_mc_drift(
         sigma_y = p1[2]
         if sigma_y > sigma_x:
             theta -= np.pi / 2.
-        # Here, we are adding an extra line to deal with the case that sigma_x < sigma_y 
-        if sigma_x < sigma_y:
-            theta += np.pi/2
-        # These lines of code are not necessary as we consider theta mod pi now. 
 
-        #if theta > np.pi:
-        #    theta -= 2 * np.pi
-        
+        if theta > np.pi:
+            theta -= 2 * np.pi
         dfdt_data = 1.0 / np.tan(-theta)
     except:
         # fall back on fit guess if fit did not converge
@@ -653,18 +648,15 @@ def ac_mc_drift(
                     p0=p0,
                 )
                 # let theta range from -pi to pi
-                random_theta = p1[-2] % (np.pi)
+                random_theta = p1[-2] % (2 * np.pi)
                 random_theta_sigma = np.sqrt(np.diag(pcov))[-2]
-                # We will get rid of this
-                #if random_theta > np.pi:
-                #    random_theta -= 2 * np.pi
+                if random_theta > np.pi:
+                    random_theta -= 2 * np.pi
                 # rotate theta for drift rate calculation by 90 deg
                 random_sigma_x = p1[1]
                 random_sigma_y = p1[2]
                 if random_sigma_y > random_sigma_x:
                     random_theta -= np.pi / 2.
-                if random_sigma_y < random_sigma_x:
-                    random_theta += np.pi / 2.
                 thetas[dm_trial * mc_trials + mc_trial] = random_theta
                 theta_sigmas[dm_trial * mc_trials + mc_trial] = \
                     random_theta_sigma
@@ -686,9 +678,9 @@ def ac_mc_drift(
                 plt.show()
 
     # apparently it is necessary to do this again
-    thetas = thetas % (np.pi)
-    #thetas[thetas > np.pi] = thetas[thetas > np.pi] - 2 * np.pi
-
+    thetas = thetas % (2 * np.pi)
+    thetas[thetas > np.pi] = thetas[thetas > np.pi] - 2 * np.pi
+    print(thetas)
     np.savez(
         fdir + "ac_drift_rates_{}".format(eventid),
         dms=dms,

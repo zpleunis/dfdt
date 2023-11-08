@@ -167,12 +167,13 @@ def ac_mc_drift(
 
     if peak is None or width is None:
         ts = np.nansum(intensity, axis=0)
-        peak, width, snr = find_burst(ts, width_factor=4, plot = False)
+        peak, width, snr = find_burst(ts, width_factor=4)
 
     window = 100
 
     # increase window for wide bursts
-    while width > 0.5 * window:
+    #while width > 0.5 * window:
+    while width > 0.2 * window:
         window += 100
 
     sub = np.nanmean(
@@ -184,13 +185,8 @@ def ac_mc_drift(
     waterfall = copy.deepcopy(sub[..., peak - window // 2 : peak + window // 2])
 
     # select noise before (and after) the burst (if necessary)
-    #noise_window = (peak - 3 * window // 2, peak - window // 2)
-    noise_window = (peak - 4 * window // 2, peak - 2*window // 2)
+    noise_window = (peak - 3 * window // 2, peak - window // 2)
 
-    '''
-    while nsamples - window < (noise_window[0] + noise_window[1]):
-        noise_window = (nsamples- window // 2, nsamples - window // 2)
-    '''
     if noise_window[0] < 0:
         difference = abs(noise_window[0])
         noise_window = (noise_window[0] + difference,
@@ -226,20 +222,11 @@ def ac_mc_drift(
     scaled_noise_ac2d = copy.deepcopy(noise_ac2d)
 
     scaled_noise_ac2d = scaled_noise_ac2d / scaling_factor
-    '''
+
     dts = (
         np.arange(-ac2d.shape[1] / 2 + 1, ac2d.shape[1] / 2 + 1)
         * ds.dt_s * 1e3
     )
-    '''
-
-    
-
-    dts = (
-        np.arange(-ac2d.shape[1] / 2 + 1, ac2d.shape[1] / 2 + 1)
-        * ds.dt_s * 1e3 
-    )
-    
     dfs = (
         np.arange(-ac2d.shape[0] / 2 + 1, ac2d.shape[0] / 2 + 1)
         * ds.df_mhz
@@ -251,10 +238,7 @@ def ac_mc_drift(
     nanmask = np.isnan(scaled_ac2d)
     x, y = [arr.T for arr in np.meshgrid(dfs, dts)]
 
-    #p0 = np.nanmax(scaled_ac2d), 50, 256, 0.2, np.nanmedian(scaled_noise_ac2d)
-
-    time_width = width * ds.dt_s * 1e+3
-    p0 = np.nanmax(scaled_ac2d), 45, time_width, 0.2, np.nanmedian(scaled_noise_ac2d)
+    p0 = np.nanmax(scaled_ac2d), 45, 200, 0.2, np.nanmedian(scaled_noise_ac2d)
     try:
         p1, pcov = scipy.optimize.curve_fit(
             gauss_2d, (x[~nanmask], y[~nanmask]),
@@ -262,7 +246,7 @@ def ac_mc_drift(
         )
 
         # let theta range from -pi to pi
-        theta = p1[-2] % (np.pi)
+        theta = p1[-2] % (2 * np.pi)
         theta_sigma = np.sqrt(np.diag(pcov))[-2]
 
         # rotate theta for drift rate calculation by 90 deg
@@ -270,14 +254,9 @@ def ac_mc_drift(
         sigma_y = p1[2]
         if sigma_y > sigma_x:
             theta -= np.pi / 2.
-        # Here, we are adding an extra line to deal with the case that sigma_x < sigma_y 
-        if sigma_x < sigma_y:
-            theta += np.pi/2
-        # These lines of code are not necessary as we consider theta mod pi now. 
 
-        #if theta > np.pi:
-        #    theta -= 2 * np.pi
-        
+        if theta > np.pi:
+            theta -= 2 * np.pi
         dfdt_data = 1.0 / np.tan(-theta)
     except:
         # fall back on fit guess if fit did not converge
@@ -322,14 +301,14 @@ def ac_mc_drift(
     # data analysis
     ax[0, 0].set_title("Burst waterfall")
     im = ax[0, 0].imshow(
-        (waterfall),
+        waterfall,
         aspect="auto",
-        interpolation="none",
+        interpolation="nearest",
         origin="lower",
         cmap="viridis",
         extent=(
             -window / 2 * ds.dt_s * 1e3,
-            window / 2 * ds.dt_s*1e3,
+            window / 2 * ds.dt_s * 1e3,
             ds.freq_bottom_mhz,
             ds.freq_top_mhz,
         ),
@@ -337,22 +316,21 @@ def ac_mc_drift(
     fig.colorbar(im, ax=ax[0, 0])
     add_text(ax[0, 0], eventid, color="white")
     ax[0, 0].set_xlabel("Time (ms)")
-    ax[0, 0].set_ylim([1000, 1500])
     ax[0, 0].set_ylabel("Observing frequency (MHz)")
 
     ax[1, 0].set_title("Burst 2D auto-correlation data")
     im = ax[1, 0].imshow(
         data,
         aspect="auto",
-        interpolation="none",
+        interpolation="nearest",
         origin="lower",
         cmap="viridis",
         extent=(
-            (min(dts) - np.diff(dts)[0],
-            (max(dts) + np.diff(dts)[0]),
+            min(dts) - np.diff(dts)[0],
+            max(dts) + np.diff(dts)[0],
             min(dfs) - np.diff(dfs)[0],
             max(dfs) + np.diff(dfs)[0],
-        )),
+        ),
     )
     fig.colorbar(im, ax=ax[1, 0])
     ax[1, 0].set_xlabel("$\Delta$t (ms)")
@@ -362,12 +340,12 @@ def ac_mc_drift(
     im = ax[2, 0].imshow(
         model,
         aspect="auto",
-        interpolation="none",
+        interpolation="nearest",
         origin="lower",
         cmap="viridis",
         extent=(
-            (min(dts) - np.diff(dts)[0]),
-            (max(dts) + np.diff(dts)[0]),
+            min(dts) - np.diff(dts)[0],
+            max(dts) + np.diff(dts)[0],
             min(dfs) - np.diff(dfs)[0],
             max(dfs) + np.diff(dfs)[0],
         ),
@@ -391,14 +369,14 @@ def ac_mc_drift(
     im = ax[3, 0].imshow(
         data - model,
         aspect="auto",
-        interpolation="none",
+        interpolation="nearest",
         origin="lower",
         cmap="bwr",
         vmin=vmin,
         vmax=vmax,
         extent=(
-            (min(dts) - np.diff(dts)[0]),
-            (max(dts) + np.diff(dts)[0]),
+            min(dts) - np.diff(dts)[0],
+            max(dts) + np.diff(dts)[0],
             min(dfs) - np.diff(dfs)[0],
             max(dfs) + np.diff(dfs)[0],
         ),
@@ -411,9 +389,9 @@ def ac_mc_drift(
     # noise analysis
     ax[0, 1].set_title("Noise waterfall")
     im = ax[0, 1].imshow(
-        (noise_waterfall),
+        noise_waterfall,
         aspect="auto",
-        interpolation="none",
+        interpolation="nearest",
         origin="lower",
         cmap="viridis",
         extent=(
@@ -430,12 +408,12 @@ def ac_mc_drift(
     im = ax[1, 1].imshow(
         noise,
         aspect="auto",
-        interpolation="none",
+        interpolation="nearest",
         origin="lower",
         cmap="viridis",
         extent=(
-            (min(dts) - np.diff(dts)[0]),
-            (max(dts) + np.diff(dts)[0]),
+            min(dts) - np.diff(dts)[0],
+            max(dts) + np.diff(dts)[0],
             min(dfs) - np.diff(dfs)[0],
             max(dfs) + np.diff(dfs)[0],
         ),
@@ -455,12 +433,12 @@ def ac_mc_drift(
     im = ax[2, 1].imshow(
         noise_model,
         aspect="auto",
-        interpolation="none",
+        interpolation="nearest",
         origin="lower",
         cmap="viridis",
         extent=(
-            (min(dts) - np.diff(dts)[0]),
-            (max(dts) + np.diff(dts)[0]),
+            min(dts) - np.diff(dts)[0],
+            max(dts) + np.diff(dts)[0],
             min(dfs) - np.diff(dfs)[0],
             max(dfs) + np.diff(dfs)[0],
         ),
@@ -477,14 +455,14 @@ def ac_mc_drift(
     im = ax[3, 1].imshow(
         noise - noise_model,
         aspect="auto",
-        interpolation="none",
+        interpolation="nearest",
         origin="lower",
         cmap="bwr",
         vmin=vmin,
         vmax=vmax,
         extent=(
-            (min(dts) - np.diff(dts)[0]),
-            (max(dts) + np.diff(dts)[0]),
+            min(dts) - np.diff(dts)[0],
+            max(dts) + np.diff(dts)[0],
             min(dfs) - np.diff(dfs)[0],
             max(dfs) + np.diff(dfs)[0],
         ),
@@ -494,7 +472,7 @@ def ac_mc_drift(
     ax[3, 1].set_xlabel("$\Delta$t (ms)")
 
     plt.tight_layout()
-    plt.savefig(fdir + "ac_drift_{}.png".format(eventid), dpi=80,
+    plt.savefig(fdir + "ac_drift_{}.png".format(eventid), dpi=100,
         bbox_inches="tight")
     plt.close()
 
@@ -508,7 +486,6 @@ def ac_mc_drift(
 
     print("{} -- {} -- Resampling data..".format(source, eventid))
     for dm_trial in range(dm_trials):
-        intensity = copy.deepcopy(dedispersed_intensity)
 
         if dm_trials == 1:
             # do not resample at all
@@ -517,10 +494,10 @@ def ac_mc_drift(
             # resample
             random_dm = dms[dm_trial]
 
-            dedisperse(intensity, center_frequencies,  ds.dt_s, dm=random_dm, reference_frequency=((ds.freq_top_mhz - ds.freq_bottom_mhz)/2))
+        intensity = copy.deepcopy(dedispersed_intensity)
 
-    
-  
+        dedisperse(intensity, center_frequencies, ds.dt_s, dm=random_dm)
+
         sub = np.nanmean(intensity.reshape(-1, sub_factor, intensity.shape[1]),
             axis=1)
         median = np.nanmedian(sub)
@@ -584,8 +561,8 @@ def ac_mc_drift(
         nanmask = np.isnan(scaled_ac2d)
         x, y = [arr.T for arr in np.meshgrid(dfs, dts)]
 
-        #p0 = np.nanmax(scaled_ac2d), 45, 256, 0.2, np.nanmedian(scaled_noise_ac2d)
-        p0 = np.nanmax(scaled_ac2d), 45, time_width, 0.2, np.nanmedian(scaled_noise_ac2d)
+        p0 = np.nanmax(scaled_ac2d), 45, 200, 0.2, np.nanmedian(
+            scaled_noise_ac2d)
         try:
             p1, pcov = scipy.optimize.curve_fit(
                 gauss_2d,
@@ -626,7 +603,6 @@ def ac_mc_drift(
             if mc_trials == 1:
                 # do not resample the noise
                 random_data = model
-        
             else:
                 # resample the noise
                 noise_model = np.random.normal(
@@ -643,8 +619,8 @@ def ac_mc_drift(
                     drift_rates[dm_trial * mc_trials + mc_trial] = np.nan
                     continue
 
-            p0 = np.nanmax(scaled_ac2d), 45, time_width, 0.2, np.nanmedian(scaled_noise_ac2d)
-            #p0 = np.nanmax(random_data), 45, 256, 0.2, np.nanmedian(noise_model)
+            p0 = np.nanmax(random_data), 45, 200, 0.2, np.nanmedian(noise_model)
+
             try:
                 p1, pcov = scipy.optimize.curve_fit(
                     gauss_2d,
@@ -653,18 +629,15 @@ def ac_mc_drift(
                     p0=p0,
                 )
                 # let theta range from -pi to pi
-                random_theta = p1[-2] % (np.pi)
+                random_theta = p1[-2] % (2 * np.pi)
                 random_theta_sigma = np.sqrt(np.diag(pcov))[-2]
-                # We will get rid of this
-                #if random_theta > np.pi:
-                #    random_theta -= 2 * np.pi
+                if random_theta > np.pi:
+                    random_theta -= 2 * np.pi
                 # rotate theta for drift rate calculation by 90 deg
                 random_sigma_x = p1[1]
                 random_sigma_y = p1[2]
                 if random_sigma_y > random_sigma_x:
                     random_theta -= np.pi / 2.
-                if random_sigma_y < random_sigma_x:
-                    random_theta += np.pi / 2.
                 thetas[dm_trial * mc_trials + mc_trial] = random_theta
                 theta_sigmas[dm_trial * mc_trials + mc_trial] = \
                     random_theta_sigma
@@ -680,14 +653,14 @@ def ac_mc_drift(
             if plot_all:
                 plt.figure()
                 plt.imshow(
-                    random_data, aspect="auto", interpolation="none",
+                    random_data, aspect="auto", interpolation="nearest",
                     origin="lower"
                 )
                 plt.show()
 
     # apparently it is necessary to do this again
-    thetas = thetas % (np.pi)
-    #thetas[thetas > np.pi] = thetas[thetas > np.pi] - 2 * np.pi
+    thetas = thetas % (2 * np.pi)
+    thetas[thetas > np.pi] = thetas[thetas > np.pi] - 2 * np.pi
 
     np.savez(
         fdir + "ac_drift_rates_{}".format(eventid),
@@ -704,14 +677,13 @@ def ac_mc_drift(
 
         nanmask = np.isnan(thetas)
 
-        plt.figure(figsize = (6.4, 4.8))
+        plt.figure()
         plt.hist(
             thetas[~nanmask],
             color="tab:gray",
             alpha=0.5,
             zorder=1,
-            #bins=max(10, int(np.ceil(np.sqrt(np.sum(~nanmask))))),
-            bins = 'auto',
+            bins=max(10, int(np.ceil(np.sqrt(np.sum(~nanmask))))),
             label="{}x{}({}) trials".format(
                 dm_trials, mc_trials, np.sum(~nanmask)),
         )
@@ -813,8 +785,6 @@ def ac_mc_drift(
             color="tab:blue",
             zorder=2,
         )
-        
-    
 
         # show only containment region set by `detection_confidence`
         xlim_low = np.nanpercentile(
@@ -872,10 +842,9 @@ def ac_mc_drift(
 
         plt.tight_layout()
         plt.savefig(
-            fdir + "ac_mc_drift_{}.png".format(eventid), dpi=80,
+            fdir + "ac_mc_drift_{}.png".format(eventid), dpi=100,
             bbox_inches="tight"
         )
         plt.close()
-
 
     return constrained, dfdt_data, dfdt_mc, dfdt_mc_low, dfdt_mc_high
