@@ -593,6 +593,16 @@ def ac_mc_drift(
                 scaled_ac2d[~nanmask].flatten(),
                 p0=p0,
             )
+            
+            sigma_x = p1[1]
+            sigma_y = p1[2]
+            if sigma_y > sigma_x:
+                theta -= np.pi / 2.
+            # Here, we are adding an extra line to deal with the case that sigma_x < sigma_y
+            if sigma_x < sigma_y:
+                theta += np.pi/2
+            
+            
         except:
             # fall back on fit guess if fit did not converge
             p1 = p0
