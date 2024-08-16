@@ -126,7 +126,7 @@ def find_burst(ts, width_factor=4, min_width=1, max_width=128, plot=False):
 
             # cutoff of at least 50 samples is a bit arbitrary, but seems reasonable
             if baseline.shape[0] > 50:
-                rms = np.std(baseline)
+                rms = np.nanstd(baseline)
             else:
                 rms = np.nan
 

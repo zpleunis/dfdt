@@ -59,8 +59,8 @@ def ac_mc_drift(
     peak=None,
     width=None,
     fdir="./results/",
-    rfi_cleaning = True,
-    normalize = True
+    rfi_cleaning=True,
+    normalize=True
 ):
     """Measure linear drift rate with a 2D auto-correlation method and
     uncertainties with Monte Carlo resampling.
@@ -307,14 +307,14 @@ def ac_mc_drift(
     # data analysis
     ax[0, 0].set_title("Burst waterfall")
     im = ax[0, 0].imshow(
-        (waterfall),
+        waterfall,
         aspect="auto",
         interpolation="none",
         origin="lower",
         cmap="viridis",
         extent=(
             -window / 2 * ds.dt_s * 1e3,
-            window / 2 * ds.dt_s*1e3,
+            window / 2 * ds.dt_s * 1e3,
             ds.freq_bottom_mhz,
             ds.freq_top_mhz,
         ),
@@ -333,8 +333,8 @@ def ac_mc_drift(
         origin="lower",
         cmap="viridis",
         extent=(
-            (min(dts) - np.diff(dts)[0],
-            (max(dts) + np.diff(dts)[0]),
+            min(dts) - np.diff(dts)[0],
+            max(dts) + np.diff(dts)[0],
             min(dfs) - np.diff(dfs)[0],
             max(dfs) + np.diff(dfs)[0],
         )),
@@ -351,8 +351,8 @@ def ac_mc_drift(
         origin="lower",
         cmap="viridis",
         extent=(
-            (min(dts) - np.diff(dts)[0]),
-            (max(dts) + np.diff(dts)[0]),
+            min(dts) - np.diff(dts)[0],
+            max(dts) + np.diff(dts)[0],
             min(dfs) - np.diff(dfs)[0],
             max(dfs) + np.diff(dfs)[0],
         ),
@@ -382,8 +382,8 @@ def ac_mc_drift(
         vmin=vmin,
         vmax=vmax,
         extent=(
-            (min(dts) - np.diff(dts)[0]),
-            (max(dts) + np.diff(dts)[0]),
+            min(dts) - np.diff(dts)[0],
+            max(dts) + np.diff(dts)[0],
             min(dfs) - np.diff(dfs)[0],
             max(dfs) + np.diff(dfs)[0],
         ),
@@ -419,8 +419,8 @@ def ac_mc_drift(
         origin="lower",
         cmap="viridis",
         extent=(
-            (min(dts) - np.diff(dts)[0]),
-            (max(dts) + np.diff(dts)[0]),
+            min(dts) - np.diff(dts)[0],
+            max(dts) + np.diff(dts)[0],
             min(dfs) - np.diff(dfs)[0],
             max(dfs) + np.diff(dfs)[0],
         ),
@@ -444,8 +444,8 @@ def ac_mc_drift(
         origin="lower",
         cmap="viridis",
         extent=(
-            (min(dts) - np.diff(dts)[0]),
-            (max(dts) + np.diff(dts)[0]),
+            min(dts) - np.diff(dts)[0],
+            max(dts) + np.diff(dts)[0],
             min(dfs) - np.diff(dfs)[0],
             max(dfs) + np.diff(dfs)[0],
         ),
@@ -468,8 +468,8 @@ def ac_mc_drift(
         vmin=vmin,
         vmax=vmax,
         extent=(
-            (min(dts) - np.diff(dts)[0]),
-            (max(dts) + np.diff(dts)[0]),
+            min(dts) - np.diff(dts)[0],
+            max(dts) + np.diff(dts)[0],
             min(dfs) - np.diff(dfs)[0],
             max(dfs) + np.diff(dfs)[0],
         ),
@@ -493,6 +493,7 @@ def ac_mc_drift(
 
     print("{} -- {} -- Resampling data..".format(source, eventid))
     for dm_trial in range(dm_trials):
+
         intensity = copy.deepcopy(dedispersed_intensity)
 
         if dm_trials == 1:
@@ -644,7 +645,7 @@ def ac_mc_drift(
                     p0=p0,
                 )
                 # let theta range from -pi to pi
-                random_theta = p1[-2] % (np.pi)
+                random_theta = p1[-2] % np.pi
                 random_theta_sigma = np.sqrt(np.diag(pcov))[-2]
                 # rotate theta for drift rate calculation by 90 deg
                 random_sigma_x = p1[1]
