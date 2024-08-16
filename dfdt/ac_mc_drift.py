@@ -128,7 +128,7 @@ def ac_mc_drift(
     dedispersed_intensity[0, ...] = np.nan
 
     if rfi_cleaning:
-    
+
         # mask out all outliers 3 sigma away from the channel mean
         channel_means = np.nanmean(dedispersed_intensity, axis=1)
         channel_stds = np.nanstd(dedispersed_intensity, axis=1)
@@ -185,12 +185,12 @@ def ac_mc_drift(
 
     # select noise before (and after) the burst (if necessary)
     #noise_window = (peak - 3 * window // 2, peak - window // 2)
-    noise_window = (peak - 4 * window // 2, peak - 2*window // 2)
+    noise_window = (peak - 4 * window // 2, peak - 2 * window // 2)
 
-    '''
+    """
     while nsamples - window < (noise_window[0] + noise_window[1]):
         noise_window = (nsamples- window // 2, nsamples - window // 2)
-    '''
+    """
     if noise_window[0] < 0:
         difference = abs(noise_window[0])
         noise_window = (noise_window[0] + difference,
@@ -226,20 +226,12 @@ def ac_mc_drift(
     scaled_noise_ac2d = copy.deepcopy(noise_ac2d)
 
     scaled_noise_ac2d = scaled_noise_ac2d / scaling_factor
-    '''
+
     dts = (
         np.arange(-ac2d.shape[1] / 2 + 1, ac2d.shape[1] / 2 + 1)
         * ds.dt_s * 1e3
     )
-    '''
 
-    
-
-    dts = (
-        np.arange(-ac2d.shape[1] / 2 + 1, ac2d.shape[1] / 2 + 1)
-        * ds.dt_s * 1e3 
-    )
-    
     dfs = (
         np.arange(-ac2d.shape[0] / 2 + 1, ac2d.shape[0] / 2 + 1)
         * ds.df_mhz
@@ -251,9 +243,7 @@ def ac_mc_drift(
     nanmask = np.isnan(scaled_ac2d)
     x, y = [arr.T for arr in np.meshgrid(dfs, dts)]
 
-    #p0 = np.nanmax(scaled_ac2d), 50, 256, 0.2, np.nanmedian(scaled_noise_ac2d)
-
-    time_width = width * ds.dt_s * 1e+3
+    time_width = width * ds.dt_s * 1e3
     p0 = np.nanmax(scaled_ac2d), 45, time_width, 0.2, np.nanmedian(scaled_noise_ac2d)
     try:
         p1, pcov = scipy.optimize.curve_fit(
@@ -262,7 +252,7 @@ def ac_mc_drift(
         )
 
         # let theta range from -pi to pi
-        theta = p1[-2] % (np.pi)
+        theta = p1[-2] % np.pi
         theta_sigma = np.sqrt(np.diag(pcov))[-2]
 
         # rotate theta for drift rate calculation by 90 deg
@@ -270,14 +260,9 @@ def ac_mc_drift(
         sigma_y = p1[2]
         if sigma_y > sigma_x:
             theta -= np.pi / 2.
-        # Here, we are adding an extra line to deal with the case that sigma_x < sigma_y 
+        # deal with sigma_x < sigma_y
         if sigma_x < sigma_y:
-            theta += np.pi/2
-        # These lines of code are not necessary as we consider theta mod pi now. 
-
-        #if theta > np.pi:
-        #    theta -= 2 * np.pi
-        
+            theta += np.pi / 2.
         dfdt_data = 1.0 / np.tan(-theta)
     except:
         # fall back on fit guess if fit did not converge
@@ -517,10 +502,9 @@ def ac_mc_drift(
             # resample
             random_dm = dms[dm_trial]
 
-            dedisperse(intensity, center_frequencies,  ds.dt_s, dm=random_dm, reference_frequency=((ds.freq_top_mhz - ds.freq_bottom_mhz)/2))
+            dedisperse(intensity, center_frequencies,  ds.dt_s, dm=random_dm,
+                reference_frequency=((ds.freq_top_mhz - ds.freq_bottom_mhz)/2))
 
-    
-  
         sub = np.nanmean(intensity.reshape(-1, sub_factor, intensity.shape[1]),
             axis=1)
         median = np.nanmedian(sub)
@@ -584,7 +568,6 @@ def ac_mc_drift(
         nanmask = np.isnan(scaled_ac2d)
         x, y = [arr.T for arr in np.meshgrid(dfs, dts)]
 
-        #p0 = np.nanmax(scaled_ac2d), 45, 256, 0.2, np.nanmedian(scaled_noise_ac2d)
         p0 = np.nanmax(scaled_ac2d), 45, time_width, 0.2, np.nanmedian(scaled_noise_ac2d)
         try:
             p1, pcov = scipy.optimize.curve_fit(
@@ -593,16 +576,15 @@ def ac_mc_drift(
                 scaled_ac2d[~nanmask].flatten(),
                 p0=p0,
             )
-            
+
             sigma_x = p1[1]
             sigma_y = p1[2]
             if sigma_y > sigma_x:
                 theta -= np.pi / 2.
-            # Here, we are adding an extra line to deal with the case that sigma_x < sigma_y
+            # deal with sigma_x < sigma_y
             if sigma_x < sigma_y:
-                theta += np.pi/2
-            
-            
+                theta += np.pi / 2.
+
         except:
             # fall back on fit guess if fit did not converge
             p1 = p0
@@ -636,7 +618,7 @@ def ac_mc_drift(
             if mc_trials == 1:
                 # do not resample the noise
                 random_data = model
-        
+
             else:
                 # resample the noise
                 noise_model = np.random.normal(
@@ -654,7 +636,6 @@ def ac_mc_drift(
                     continue
 
             p0 = np.nanmax(scaled_ac2d), 45, time_width, 0.2, np.nanmedian(scaled_noise_ac2d)
-            #p0 = np.nanmax(random_data), 45, 256, 0.2, np.nanmedian(noise_model)
             try:
                 p1, pcov = scipy.optimize.curve_fit(
                     gauss_2d,
@@ -665,9 +646,6 @@ def ac_mc_drift(
                 # let theta range from -pi to pi
                 random_theta = p1[-2] % (np.pi)
                 random_theta_sigma = np.sqrt(np.diag(pcov))[-2]
-                # We will get rid of this
-                #if random_theta > np.pi:
-                #    random_theta -= 2 * np.pi
                 # rotate theta for drift rate calculation by 90 deg
                 random_sigma_x = p1[1]
                 random_sigma_y = p1[2]
@@ -696,8 +674,7 @@ def ac_mc_drift(
                 plt.show()
 
     # apparently it is necessary to do this again
-    thetas = thetas % (np.pi)
-    #thetas[thetas > np.pi] = thetas[thetas > np.pi] - 2 * np.pi
+    thetas = thetas % np.pi
 
     np.savez(
         fdir + "ac_drift_rates_{}".format(eventid),
@@ -721,7 +698,7 @@ def ac_mc_drift(
             alpha=0.5,
             zorder=1,
             #bins=max(10, int(np.ceil(np.sqrt(np.sum(~nanmask))))),
-            bins = 'auto',
+            bins="auto",
             label="{}x{}({}) trials".format(
                 dm_trials, mc_trials, np.sum(~nanmask)),
         )
@@ -823,8 +800,6 @@ def ac_mc_drift(
             color="tab:blue",
             zorder=2,
         )
-        
-    
 
         # show only containment region set by `detection_confidence`
         xlim_low = np.nanpercentile(
@@ -886,6 +861,5 @@ def ac_mc_drift(
             bbox_inches="tight"
         )
         plt.close()
-
 
     return constrained, dfdt_data, dfdt_mc, dfdt_mc_low, dfdt_mc_high

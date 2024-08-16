@@ -1,8 +1,8 @@
 """Utilities for linear drift rate measurements."""
 
+import matplotlib.pyplot as plt
 import numpy as np
 import scipy.signal
-import matplotlib.pyplot as plt
 
 
 class DynamicSpectrum():
@@ -63,87 +63,7 @@ def boxcar_kernel(width):
     return np.ones(width, dtype="float32") / np.sqrt(width)
 
 
-
-# Adding a parameter that controls the cutoff
-# Change find_burst to depend on the time resolution of the data.
-# FRBs last anywhere between a few microsecond sto a few milliseconds.
-
-'''
-def find_burst(ts, width_factor=4, min_width=1, max_width=128, cutoff_sample = 50):
-    """Find burst peak and width using boxcar convolution.
-
-    Parameters
-    ----------
-    ts : array_like
-        Time-series.
-    width_factor : int, optional
-        Windowing factor for on and off-pulse determination.
-    min_width : int, optional
-        Minimum width to search from, in number of time samples.
-        1 by default.
-    max_width : int, optional
-        Maximum width to search up to, in number of time samples.
-        128 by default.
-
-    cutoff_sample : int, optional
-        Used to determine the sample number that should be used to determine the cutoff.
-        Set to 50 by default. 
-
-    Returns
-    -------
-    peak : int
-        Index of the peak of the burst in the time-series.
-    width : int
-        Width of the burst in number of samples.
-    snr : float
-        S/N of the burst.
-
-    """
-
-
-    min_width = int(min_width)
-    max_width = int(max_width)
-
-    # do not search widths bigger than timeseries
-    widths = list(range(min_width,
-                        min(max_width + 1, int((len(ts) - 50) // 6)))) # Is this the same cutoff samples as below? 
-
-    # envelope finding
-    snrs = np.empty_like(widths, dtype=float)
-    peaks = np.empty_like(widths, dtype=int)
-
-    # borders for on and off-pulse determination
-    outer = 3 * width_factor // 2
-    inner = width_factor // 2
-
-    for i in range(len(widths)):
-        convolved = scipy.signal.convolve(ts, boxcar_kernel(widths[i]))
-        peaks[i] = np.nanargmax(convolved)
-        # peak should not be on the edge of time-series
-        if (peaks[i] > 0.9 * ts.shape[0]) or (peaks[i] < 0.1 * ts.shape[0]):
-            snrs[i] = np.nan
-        else:
-            # get RMS for S/N weighting, as in PRESTO's single_pulse_search.py
-            baseline = np.concatenate(
-                [
-                    convolved[0 : max(0, peaks[i] - 3 * widths[i])],
-                    convolved[peaks[i] + 3 * widths[i] :],
-                ]
-            )
-
-            # cutoff of at least 50 samples is a bit arbitrary, but seems
-            # reasonable
-            if baseline.shape[0] > cutoff_sample:
-                rms = np.std(baseline)
-            else:
-                rms = np.nan
-
-            snrs[i] = convolved[peaks[i]] / rms
-
-    best_idx = np.nanargmax(snrs)
-
-    return peaks[best_idx], widths[best_idx], snrs[best_idx]
-'''
+# Note: these defaults do not work if you look at very high-time resolution data
 def find_burst(ts, width_factor=4, min_width=1, max_width=128, plot=False):
     """Find burst peak and width using boxcar convolution.
 
@@ -244,10 +164,8 @@ def find_burst(ts, width_factor=4, min_width=1, max_width=128, plot=False):
     return peaks[best_idx], widths[best_idx], snrs[best_idx]
 
 
-
 def add_text(ax, text, color="black"):
     """Add text in top left corner of plot."""
-
     xlim = ax.get_xlim()
     ylim = ax.get_ylim()
 
@@ -281,10 +199,8 @@ def shift_channels(intensity, bins):
         intensity[ii, :] = np.roll(intensity[ii, :], -bins[ii], axis=0)
 
 
-
-def dedisperse(intensity, center_frequencies, dt_s, dm=0.0, reference_frequency = 600):
-
-
+def dedisperse(intensity, center_frequencies, dt_s, dm=0.0,
+               reference_frequency=600.0):
     """Shift channels according to the delays predicted by the given
     dispersion measure.
 
@@ -319,5 +235,3 @@ def dedisperse(intensity, center_frequencies, dt_s, dm=0.0, reference_frequency 
     rel_bindelays = np.round(rel_delays / dt_s).astype("int")
 
     shift_channels(intensity, rel_bindelays)
-
-
