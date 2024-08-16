@@ -3,7 +3,7 @@ Measure a linear drift rate for a fast radio burst, (for now) using a 2D auto-co
 
 Created by Ziggy Pleunis, with contributions from Alex Josephy, Deborah Good and Affan Khadir.
 
-Feel free to open an issue on GitHub or email ziggy.pleunis@physics.mcgill.ca with questions or comments.
+Feel free to open an issue on GitHub or email z.pleunis@uva.nl with questions or comments.
 
 ## Method
 
