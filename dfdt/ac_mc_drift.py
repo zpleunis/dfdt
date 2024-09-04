@@ -51,7 +51,7 @@ def ac_mc_drift(
     sub_factor=64,
     dm_trials=10,
     mc_trials=10,
-    detection_confidence=99.73,
+    detection_confidence=90.0,
     uncertainty_confidence=68.0,
     plot_result=True,
     plot_all=False,
@@ -87,7 +87,8 @@ def ac_mc_drift(
         resample the noise at all.
     detection_confidence : float
         Confidence interval in percent to calculate for results and to
-        display on plot, 99.7 (3sigma) by default.
+        display on plot (i.e. how many samples need to have positive/
+        negative drift rate to claim a confident detection), 90 by default.
     uncertainty_confidence : float
         Confidence interval in percent to calculate uncertainty region
         for results, 68 (1sigma) by default.
@@ -254,9 +255,6 @@ def ac_mc_drift(
         sigma_x = p1[1]
         sigma_y = p1[2]
         if sigma_y > sigma_x:
-            theta -= np.pi / 2.
-        # deal with sigma_x < sigma_y
-        if sigma_x < sigma_y:
             theta += np.pi / 2.
         dfdt_data = 1.0 / np.tan(-theta)
     except:
@@ -317,7 +315,6 @@ def ac_mc_drift(
     fig.colorbar(im, ax=ax[0, 0])
     add_text(ax[0, 0], eventid, color="white")
     ax[0, 0].set_xlabel("Time (ms)")
-    ax[0, 0].set_ylim([1000, 1500])
     ax[0, 0].set_ylabel("Observing frequency (MHz)")
 
     ax[1, 0].set_title("Burst 2D auto-correlation data")
@@ -576,11 +573,7 @@ def ac_mc_drift(
             sigma_x = p1[1]
             sigma_y = p1[2]
             if sigma_y > sigma_x:
-                theta -= np.pi / 2.
-            # deal with sigma_x < sigma_y
-            if sigma_x < sigma_y:
                 theta += np.pi / 2.
-
         except:
             # fall back on fit guess if fit did not converge
             p1 = p0
@@ -646,8 +639,6 @@ def ac_mc_drift(
                 random_sigma_x = p1[1]
                 random_sigma_y = p1[2]
                 if random_sigma_y > random_sigma_x:
-                    random_theta -= np.pi / 2.
-                if random_sigma_y < random_sigma_x:
                     random_theta += np.pi / 2.
                 thetas[dm_trial * mc_trials + mc_trial] = random_theta
                 theta_sigmas[dm_trial * mc_trials + mc_trial] = \
@@ -671,6 +662,10 @@ def ac_mc_drift(
 
     # apparently it is necessary to do this again
     thetas = thetas % np.pi
+
+    # address wrapping around
+    bigdiff = np.nanmax(np.diff(thetas))
+    thetas[thetas > bigdiff / 2] -= bigdiff
 
     np.savez(
         fdir + "ac_drift_rates_{}".format(eventid),
