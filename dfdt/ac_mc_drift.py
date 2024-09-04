@@ -48,7 +48,6 @@ def ac_mc_drift(
     source,
     eventid,
     ds,
-    nsamples,
     sub_factor=64,
     dm_trials=10,
     mc_trials=10,
@@ -187,10 +186,6 @@ def ac_mc_drift(
     #noise_window = (peak - 3 * window // 2, peak - window // 2)
     noise_window = (peak - 4 * window // 2, peak - 2 * window // 2)
 
-    """
-    while nsamples - window < (noise_window[0] + noise_window[1]):
-        noise_window = (nsamples- window // 2, nsamples - window // 2)
-    """
     if noise_window[0] < 0:
         difference = abs(noise_window[0])
         noise_window = (noise_window[0] + difference,
@@ -337,7 +332,7 @@ def ac_mc_drift(
             max(dts) + np.diff(dts)[0],
             min(dfs) - np.diff(dfs)[0],
             max(dfs) + np.diff(dfs)[0],
-        )),
+        ),
     )
     fig.colorbar(im, ax=ax[1, 0])
     ax[1, 0].set_xlabel("$\Delta$t (ms)")
