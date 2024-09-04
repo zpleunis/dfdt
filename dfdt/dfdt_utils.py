@@ -1,5 +1,6 @@
 """Utilities for linear drift rate measurements."""
 
+import matplotlib.pyplot as plt
 import numpy as np
 import scipy.signal
 
@@ -62,7 +63,8 @@ def boxcar_kernel(width):
     return np.ones(width, dtype="float32") / np.sqrt(width)
 
 
-def find_burst(ts, width_factor=4, min_width=1, max_width=128):
+# Note: these defaults do not work if you look at very high-time resolution data
+def find_burst(ts, width_factor=4, min_width=1, max_width=128, plot=False):
     """Find burst peak and width using boxcar convolution.
 
     Parameters
@@ -77,6 +79,8 @@ def find_burst(ts, width_factor=4, min_width=1, max_width=128):
     max_width : int, optional
         Maximum width to search up to, in number of time samples.
         128 by default.
+    plot : bool, optional
+        If True, show figure to summarize burst finding results.
 
     Returns
     -------
@@ -92,12 +96,14 @@ def find_burst(ts, width_factor=4, min_width=1, max_width=128):
     max_width = int(max_width)
 
     # do not search widths bigger than timeseries
-    widths = list(range(min_width,
-                        min(max_width + 1, int((len(ts) - 50) // 6))))
+    widths = list(range(min_width, min(max_width + 1, int((len(ts) - 50) // 6))))
 
     # envelope finding
     snrs = np.empty_like(widths, dtype=float)
     peaks = np.empty_like(widths, dtype=int)
+
+    if plot:
+        plt.figure()
 
     # borders for on and off-pulse determination
     outer = 3 * width_factor // 2
@@ -118,16 +124,42 @@ def find_burst(ts, width_factor=4, min_width=1, max_width=128):
                 ]
             )
 
-            # cutoff of at least 50 samples is a bit arbitrary, but seems
-            # reasonable
+            # cutoff of at least 50 samples is a bit arbitrary, but seems reasonable
             if baseline.shape[0] > 50:
-                rms = np.std(baseline)
+                rms = np.nanstd(baseline)
             else:
                 rms = np.nan
 
             snrs[i] = convolved[peaks[i]] / rms
 
+            # rms = np.nanstd(
+            #    convolved[peaks[i] - outer * widths[i] : peaks[i] - inner * widths[i]]
+            # )
+            # snrs[i] = convolved[peaks[i]] / rms
+
+            if plot and not np.isnan(convolved).all():
+                plt.plot(convolved, color="tab:gray", alpha=0.1, zorder=1)
+
     best_idx = np.nanargmax(snrs)
+
+    if plot:
+        plt.plot(ts, color = "black", zorder=2)
+
+        plt.axvline(
+            peaks[best_idx] - inner * widths[best_idx] - 0.5, color="tab:orange", ls=":"
+        )
+        plt.axvline(
+            peaks[best_idx] + inner * widths[best_idx] - 0.5, color="tab:orange", ls=":"
+        )
+
+        plt.xlabel("Time (samples)")
+        plt.ylabel("Intensity (a.u.)")
+        plt.xlim(
+            peaks[best_idx] - outer * widths[best_idx] - 0.5,
+            peaks[best_idx] + outer * widths[best_idx] - 0.5,
+        )
+
+        plt.savefig("find_burst.png", dpi=100)
 
     return peaks[best_idx], widths[best_idx], snrs[best_idx]
 
@@ -198,7 +230,6 @@ def dedisperse(intensity, center_frequencies, dt_s, dm=0.0,
     # then subtract the existing integer shifts. Reduces rounding error.
     ref_delay = delay_from_dm(dm, reference_frequency)
     delays = delay_from_dm(dm, center_frequencies)
-
     # relative delay
     rel_delays = delays - ref_delay
     rel_bindelays = np.round(rel_delays / dt_s).astype("int")
